@@ -76,6 +76,10 @@ int main(int argc, char **argv)
   //if ( argc>=4) seed = atoi(argv[4]);
 
   MergeIO *mrg = new MergeIO(inputName.Data(), outputName.Data(), nrun, seed);
+
+  const std::string &optNoiseFileType    = options.GetOption("-NOISEFILETYPE");
+  if (!optNoiseFileType.empty()) mrg->SetNoiseFileType(optNoiseFileType);
+  mrg->SetRealNoiseFile();
   DoProcess(mrg, options);
 
 	return 0;
@@ -87,9 +91,9 @@ void DoProcess(MergeIO *mrg, MergeArgOptions &options)
   const std::string &foptTimeMax     = options.GetOption("-TMAX");
   const std::string &foptTimeCut     = options.GetOption("-TCUT");
   const std::string &foptPMTDeadTime = options.GetOption("-TDEAD");
-  if (!foptTimeMax.empty())     mrg->SetTimeMax(std::stof(foptTimeMax));
-  if (!foptTimeCut.empty())     mrg->SetTimeCut(std::stof(foptTimeCut));
-  if (!foptPMTDeadTime.empty()) mrg->SetPMTDeadTime(std::stof(foptPMTDeadTime));
+  if (!foptTimeMax.empty())      mrg->SetTimeMax(std::stof(foptTimeMax));
+  if (!foptTimeCut.empty())      mrg->SetTimeCut(std::stof(foptTimeCut));
+  if (!foptPMTDeadTime.empty())  mrg->SetPMTDeadTime(std::stof(foptPMTDeadTime));
   mrg->SetTimeWindow(mrg->GetTimeMax() - mrg->GetTimeCut());
 
   mrg->ReadFile();

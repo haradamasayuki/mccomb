@@ -146,6 +146,7 @@ void MergeRealNoise::Combine()
   float PreHitTime[MAXPM+1] = {0.};
   for (int i = 0; i<MAXPM+1; i++) PreHitTime[i] = -9999999.;
 
+//Dead time treatment
   for (Int_t i = 0; i<nHit_App;i++) {
     if (vSortedT[i] - PreHitTime[vSortedCableID[i]] < fPMTDeadTime) continue;//cutting for pmt dead time.
     if (PreHitTime[vSortedCableID[i]] < vSortedT[i]) PreHitTime[vSortedCableID[i]] = vSortedT[i];
@@ -198,9 +199,9 @@ void MergeRealNoise::AppendNoiseData()
 
   for ( int i=0; i<fNoiseTQI->nhits; i++) {
     Int_t cbl = fNoiseTQI->cables[i]&0x0000FFFF;
-    if (cbl<1||cbl>MAXPM) continue;//dummy data contained impossible cableID
+    if (cbl<1||cbl>MAXPM) continue;//dummy data contained impossible cableID (OD or others)
 
-    if (fNoiseTQI->T[i]<fTMin||fNoiseTQI->T[i]>fTMax) continue;//only selected within 500 us data
+    if (fNoiseTQI->T[i]<fTMin||fNoiseTQI->T[i]>fTMax) continue;//only selected within [range] hit
 
     vHitFlag.push_back(fNoiseTQI->cables[i]>>16);
     vCableID.push_back(cbl);

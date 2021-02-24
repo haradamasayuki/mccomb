@@ -29,12 +29,16 @@ class MergeIO : public MergeRealNoise
 
     bool CheckFileExist(const std::string& str);
 
+    inline void SetNoiseFileType(std::string str) {fNoiseDataType = str;}   
+
   protected : 
     const char* fInputFileName;
     const char* fOutputFileName;
 
+    std::string fNoiseDataType;
     Int_t fRunNumber;
     Int_t lun;
+
 
 
 };

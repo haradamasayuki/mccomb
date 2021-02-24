@@ -41,9 +41,18 @@ int main(int argc, char **argv)
 	//}
 
   const std::string  &optInput    = options.GetOption("-in");
+  if(optInput.empty()) {
+    cerr<<"!!!!!!!!!!!!!"<<endl;
+    std::exit(1);
+  }
   const std::string  &optOutput    = options.GetOption("-out");
+  if ( optOutput.empty() ) { 
+    cerr<<"!!!!!!!!!!!!!"<<endl;
+    std::exit(1);
+    //optOutput = "./out.root";
+  }
   const std::string  &optRunNum   = options.GetOption("-run");
-  if(optInput.empty() || optOutput.empty() || optRunNum.empty()){
+  if ( optRunNum.empty()) {
     cerr<<"!!!!!!!!!!!!!"<<endl;
     std::exit(1);
   }

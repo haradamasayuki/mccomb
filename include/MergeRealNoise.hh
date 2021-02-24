@@ -66,12 +66,12 @@ class MergeRealNoise {
 
 
   private : 
-    Int_t   fNoiseEntry;//Number of entry for the noise run. 
-    Float_t fTimeWindow;//fTimeMax - fTimeCut = TimeWindow
-    Float_t fTimeOffset;
-    Float_t fTimeCut;
-    Float_t fTimeMax;
-    Float_t fPMTDeadTime;
+    Int_t   fNoiseEntry; // Number of entry for the noise run. 
+    Float_t fTimeWindow; // fTimeMax - fTimeCut = TimeWindow
+    Float_t fTimeOffset; // Randomly determined start-timing for dark noise data
+    Float_t fTimeCut; // cut time from start time 
+    Float_t fTimeMax; // Maximum time for dark noise
+    Float_t fPMTDeadTime; // PMT dead time after hit
 //    Int_t fRandomSeed;
 
     Int_t nHit_App;

@@ -20,15 +20,17 @@ class MergeRealNoise {
 
     void Clear();
     void Combine();
+    void DefineHitThreshold();
     void AppendNoiseData();
     void ReadInputTQ();
     void SortAppendedTQ();
 
-    void SetNoiseEntry(Int_t entry) { fNoiseEntry = entry; }
-    void SetTimeCut(Float_t tcut) { fTimeCut = tcut; }
-    void SetTimeMax(Float_t tmax) { fTimeMax = tmax; }
-    void SetTimeWindow(Float_t twin) { fTimeWindow = twin; }
-    void SetPMTDeadTime(Float_t tdead) { fPMTDeadTime = tdead; }
+    inline void SetNoiseEntry(Int_t entry) { fNoiseEntry = entry; }
+    inline void SetTimeCut(Float_t tcut) { fTimeCut = tcut; }
+    inline void SetTimeMax(Float_t tmax) { fTimeMax = tmax; }
+    inline void SetTimeWindow(Float_t twin) { fTimeWindow = twin; }
+    inline void SetPMTDeadTime(Float_t tdead) { fPMTDeadTime = tdead; }
+    inline void SetStartEvent(int ievt) { fNoiseEvent = ievt; }
 
     Double_t MakeRandom() { return rndm(engine); }
 
@@ -66,12 +68,19 @@ class MergeRealNoise {
 
 
   private : 
+    Int_t   ProcessEvent;
+    Int_t   fNoiseEvent;
+    Int_t   nReadNoiseEvent;
+
     Int_t   fNoiseEntry; // Number of entry for the noise run. 
     Float_t fTimeWindow; // fTimeMax - fTimeCut = TimeWindow
     Float_t fTimeOffset; // Randomly determined start-timing for dark noise data
     Float_t fTimeCut; // cut time from start time 
     Float_t fTimeMax; // Maximum time for dark noise
     Float_t fPMTDeadTime; // PMT dead time after hit
+
+    Float_t fLeftEdge;  // Lower edge of nhits
+    Float_t fRightEdge; // Higher edge of nhits
 //    Int_t fRandomSeed;
 
     Int_t nHit_App;

@@ -9,7 +9,7 @@ using namespace std;
 
 MergeRealNoise::MergeRealNoise(int seed)
 //:PMTXYZ(geopmt_.xyzpm), C_WATER(21.5833), 
-:engine(seed), rndm(0,1), fTimeWindow(535.e3), fTimeCut(0.), fTimeMax(535.e3), fPMTDeadTime(900.) 
+:engine(seed), rndm(0,1),ProcessEvent(0), fNoiseEvent(0),  nReadNoiseEvent(0), fTimeWindow(535.e3), fTimeOffset(0.), fTimeCut(0.), fTimeMax(535.e3), fPMTDeadTime(900.) 
 {
 }
 //****************************************************************************//
@@ -158,8 +158,14 @@ void MergeRealNoise::Combine()
     nHit_Save++;
   }
   fOutTQI->nhits = nHit_Save;
-  fOutTQI->it0xsk = fInTQI->it0xsk;
+  fOutTQI->it0xsk = fit0xsk;
+  fOutTQI->tqreal_version = ftqreal_version;
+  fOutTQI->qbconst_version = fqbconst_version; 
+  fOutTQI->tqmap_version = ftqmap_version;   
+  fOutTQI->pgain_version = fpgain_version;   
 
+
+  ProcessEvent++;
   return;
 }
 
@@ -189,19 +195,37 @@ void MergeRealNoise::ReadInputTQ()
 
 void MergeRealNoise::AppendNoiseData()
 {
-  fNoiseChain->GetEntry((int)GetNoiseEntry()*MakeRandom());
+  Int_t readOK = 0;
+  if (nReadNoiseEvent%2 == 0) {
+    while ( !readOK || fNoiseTQI->nhits<fLeftEdge || fNoiseTQI->nhits>fRightEdge ){
+      int iEntry = int(fNoiseEvent);
+      if (iEntry > fNoiseEntry-1) {
+        cout<<" Maximum Entry is over !"<<endl;
+        exit(1);
+      }
+      fNoiseChain->GetEntry(iEntry);
+      fNoiseEvent++;
+      readOK = 1;
 
+    }
+  }
+  nReadNoiseEvent++;
+
+  if (fNoiseEvent%1000==0) cout<<"NoiseEntry : "<<fNoiseEvent<<endl;
   Float_t fTMin, fTMax;//tentative
-  
-  fTMin = fNoiseTQI->T[0] + (fNoiseTQI->T[fNoiseTQI->nhits-1] - fTimeWindow)*MakeRandom();//fTMin is randomised b/w -500 ~ 500 us.
-  fTMax = fTMin + fTimeWindow; 
-  fTimeOffset = fTMin;
+  if (nReadNoiseEvent%2 == 0) { //Get New Event
+    fTMin = fNoiseTQI->T[0];
+    fTMax = fTMin + fTimeWindow;
+  }
+  else {
+    fTMin = fNoiseTQI->T[fNoiseTQI->nhits-1] - fTimeWindow;
+    fTMax = fNoiseTQI->T[fNoiseTQI->nhits-1];
+  }
 
   for ( int i=0; i<fNoiseTQI->nhits; i++) {
     Int_t cbl = fNoiseTQI->cables[i]&0x0000FFFF;
-    if (cbl<1||cbl>MAXPM) continue;//dummy data contained impossible cableID (OD or others)
-
     if (fNoiseTQI->T[i]<fTMin||fNoiseTQI->T[i]>fTMax) continue;//only selected within [range] hit
+    if (cbl<1||cbl>MAXPM) continue;//dummy data contained impossible cableID (OD or others)
 
     vHitFlag.push_back(fNoiseTQI->cables[i]>>16);
     vCableID.push_back(cbl);
@@ -231,4 +255,21 @@ void MergeRealNoise::SortAppendedTQ()
   }
 }
 
+
+void MergeRealNoise::DefineHitThreshold() 
+{
+  //Tentatively 
+  //TString cut = TString("");
+  //TString cut = TString("HEADER.idtgsk&2048");
+  //fNoiseChain->Draw("TQREAL.nhits>>h", cut, "goff", 1000);
+  //TH1F* h = (TH1F*)gROOT->Get("h");
+  //if(!h) cout<<"cannot find histogram"<<endl; 
+  //fLeftEdge = h->GetMean() - h->GetRMS();
+  //fRightEdge = h->GetMean() + h->GetRMS();
+  //Tentatively 
+
+  fLeftEdge  = 70000;
+  fRightEdge = 80000;
+  cout<< " nhits threshold : "<<fLeftEdge<<"  "<<fRightEdge<<endl;
+}
 

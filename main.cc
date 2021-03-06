@@ -79,8 +79,13 @@ int main(int argc, char **argv)
 
   const std::string &optNoiseFileType    = options.GetOption("-NOISEFILETYPE");
   if (!optNoiseFileType.empty()) mrg->SetNoiseFileType(optNoiseFileType);
+  
+  const std::string &optInputFileNum    = options.GetOption("-FILENUMBER");
+  if (!optInputFileNum.empty()) mrg->SetInputFileNumber(std::stoi(optInputFileNum));
+  
   mrg->SetRealNoiseFile();
   DoProcess(mrg, options);
+  delete mrg;
 
 	return 0;
 }

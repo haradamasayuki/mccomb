@@ -3,6 +3,7 @@
 #undef MAXHWSK
 #include <skheadC.h>
 #include <sktqC.h>
+#include <sys/stat.h>
 
 #include <SKLibs.hh>
 #include <ROOTLibs.hh>
@@ -12,7 +13,7 @@
 
 MergeIO::MergeIO(const char *inputfile, const char *outputfile, int run_number, int seed)
   :MergeRealNoise(seed), fInputFileName(inputfile), fOutputFileName(outputfile),
-  fNoiseDataType("T2K") ,fRunNumber(run_number), lun(10)
+  fNoiseDataType("T2K") ,fRunNumber(run_number), fFileNumber(0), lun(10)
 {
   Initialize();
   CreateOutputFile();
@@ -21,14 +22,14 @@ MergeIO::MergeIO(const char *inputfile, const char *outputfile, int run_number, 
 
 MergeIO::~MergeIO()
 {
+  cout<<" Destructor : Writing output "<<endl;
   WriteOutput();
-  delete inTree;
-  delete outTree;
+  //delete inTree;
+  //delete outTree;
 }
 
 void MergeIO::Initialize()
 {
-//  SetTimeCut(0.);
 //  SetTimeMax(535.e3);
 //  SetPMTDeadTime(900.);
 //  SetTimeWindow(GetTimeMax() - GetTimeCut());
@@ -91,8 +92,7 @@ void MergeIO::SetRealNoiseFile()
   else if (fNoiseDataType == "AmBe") {
     //not implemented yet
   }
-
-
+  SetStartEvent(fFileNumber*3000.);
 }
 
 void MergeIO::SetT2KDummyDataFile()
@@ -101,20 +101,20 @@ void MergeIO::SetT2KDummyDataFile()
   //Tentatively only SK6
   string DirName = "/disk01/calib/usr/han/dummy/sk6/";
   //string DirName = "/disk02/calib3/auto/random_wide/root/";
-  string sRun = std::to_string(fRunNumber);
-  if (sRun.size()==5) sRun = "0"+sRun;
-  else if (sRun.size()==6) {}
-  else {};
-
-  string sRunHeader = sRun.substr(0,4);
-  //DirName = DirName + sRunHeader + "/random_wide."+sRun+".root";
-  DirName = DirName + sRun + "/t2k_run/" + sRun + "*.root";
 
 	fNoiseChain = new TChain("data");
-  //fNoiseChain->Add(FilePath.c_str());
-  fNoiseChain->Add(DirName.c_str());
-	//AddSKrun(nfile); //(koshio)
 
+  for (int i = -75;i<75;i++) {
+    string sRun = std::to_string(fRunNumber-i);
+    if (sRun.size()==5) sRun = "0"+sRun;
+
+    string RunDir = DirName + sRun;
+    if (CheckDirectoryExist(RunDir)) {
+      string FileName = DirName + sRun + "/t2k_run" + sRun + "*.root";
+      fNoiseChain->Add(FileName.c_str());
+      cout<<"Noise data File   : "<<FileName<<endl;
+    }
+  }
 	fNoiseTQI = new TQReal;
 	fNoiseTQA = new TQReal;
 	fNoiseHEAD = new Header;
@@ -122,10 +122,13 @@ void MergeIO::SetT2KDummyDataFile()
 	fNoiseChain->SetBranchAddress("TQAREAL", &fNoiseTQA);
 	fNoiseChain->SetBranchAddress("HEADER", &fNoiseHEAD);
 
-  MergeRealNoise::SetNoiseEntry(fNoiseChain->GetEntries());
+  MergeRealNoise::DefineHitThreshold();
 
-	if (fNoiseChain->GetEntries() == 0){
-		//cout << "no random data for time period  : "<<nfile<< endl;
+  MergeRealNoise::SetNoiseEntry(fNoiseChain->GetEntries());
+  std::cout<<"Noise Event :  "<<MergeRealNoise::GetNoiseEntry()<<std::endl;
+
+	if (fNoiseChain->GetEntries() == 0) {
+		cout << "no random data for time period  : "<< endl;
 		exit(42);
 	}
 }
@@ -157,7 +160,7 @@ void MergeIO::SetRandomWideDataFile()
   MergeRealNoise::SetNoiseEntry(fNoiseChain->GetEntries());
 
 	if (fNoiseChain->GetEntries() == 0){
-		//cout << "no random data for time period  : "<<nfile<< endl;
+		cout << "no random data for time period  : "<< endl;
 		exit(42);
 	}
 }
@@ -166,9 +169,10 @@ void MergeIO::SetRandomWideDataFile()
 void MergeIO::ReadFile()
 {
   Int_t nevent = inTree->GetEntries();
+  cout<<" Input Event : "<<nevent<<endl;
 	for(Int_t iev = 0;iev<nevent;iev++) {
     if(iev%100 == 0) cout<<iev<<endl;
-		inTree->GetEntry(iev);
+		inTree->GetEntry();
     ReadEvent();
   }
 }
@@ -177,6 +181,7 @@ void MergeIO::ReadFile()
 void MergeIO::ReadEvent() {
 
   Clear();
+
   ReadInputTQ();
   AppendNoiseData();
   SortAppendedTQ();
@@ -199,4 +204,13 @@ bool MergeIO::CheckFileExist(const std::string& str)
 {
     std::ifstream ifs(str);
       return ifs.is_open();
+}
+
+bool MergeIO::CheckDirectoryExist(const std::string& str)
+{
+  struct stat st;
+  bool bExist = 0;
+  if (!stat(str.c_str(), &st) ) bExist = 1;
+  else if (stat(str.c_str(), &st) ) bExist = 0;
+  return bExist;
 }

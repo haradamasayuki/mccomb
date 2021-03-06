@@ -14,4 +14,5 @@
 |-TCUT    | (offset time for merge data) [ns]     | `mccomb -in in.root -TCUT 18.e3`                | optional  |
 |-TDEAD   | (dead time after pmt-hit) [ns]        | `mccomb -in in.root -TDEAD 900`                 | optional  |
 
-|-NOISEFILETYPE   | (noise file type (e.g. T2K) [ns] | `mccomb -in in.root -NOISEFILETYPE T2K`      | optional  |
+|-NOISEFILETYPE   | (noise file type (e.g. T2K)                      | `mccomb -in in.root -NOISEFILETYPE T2K`         | optional  |
+|-FILENUMBER      | (input file number for avoiding same noise file )| `mccomb -in in.root -FILENUMBER NNN`            | optional  |

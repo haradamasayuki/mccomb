@@ -172,7 +172,7 @@ void MergeIO::ReadFile()
   cout<<" Input Event : "<<nevent<<endl;
 	for(Int_t iev = 0;iev<nevent;iev++) {
     if(iev%100 == 0) cout<<iev<<endl;
-		inTree->GetEntry();
+		inTree->GetEntry(iev);
     ReadEvent();
   }
 }
